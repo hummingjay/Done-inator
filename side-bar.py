@@ -80,7 +80,14 @@ class Sidebar(UserControl):
                                 },
                                 overlay_color={"": "transparent"},
                             ),
-                        )
+                        ),
+                        Text(
+                            value=text,
+                            color="White56",
+                            size=11,
+                            opacity=1,
+                            animate_opacity=200,
+                        ),
                     ]
                 ),
         )
@@ -98,7 +105,13 @@ class Sidebar(UserControl):
                     self.UserData("Di", "Done-inator", "The To-do app"),
                     # divider
                     Divider(height=5, color="transparent"),
+                    self.ContainedIcon(icons.HOME, "Home"),
                     self.ContainedIcon(icons.SEARCH, "Search"),
+                    self.ContainedIcon(icons.CALENDAR_MONTH_ROUNDED, "Calendar"),
+                    self.ContainedIcon(icons.PIE_CHART_OUTLINE_ROUNDED, "Stats"),
+                    self.ContainedIcon(icons.SETTINGS, "Settings"),
+                    Divider(height=5, color="white24"),
+                    self.ContainedIcon(icons.LOGIN_OUTLINED, "Login"),
                 ]
             ),
         )
