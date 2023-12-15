@@ -67,7 +67,22 @@ class Sidebar(UserControl):
             width=100,
             height=45,
             border_radius=10,
-            content=None,
+            on_hover=None,
+            content=Row(
+                    controls=[
+                        IconButton(
+                            icon=icon_name,
+                            icon_size=18,
+                            icon_color='White54',
+                            style=ButtonStyle(
+                                shape={
+                                    "": RoundedRectangleBorder(radius=7),
+                                },
+                                overlay_color={"": "transparent"},
+                            ),
+                        )
+                    ]
+                ),
         )
     
     def build(self):
@@ -82,7 +97,8 @@ class Sidebar(UserControl):
                     # adding sidebar icons
                     self.UserData("Di", "Done-inator", "The To-do app"),
                     # divider
-                    Divider(height=5, color="transparent")
+                    Divider(height=5, color="transparent"),
+                    self.ContainedIcon(icons.SEARCH, "Search"),
                 ]
             ),
         )
