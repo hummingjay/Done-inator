@@ -1,5 +1,6 @@
 """
 My sidebar for the done-inator
+ can run stand alone for the sake of testing
 """
 
 import flet
@@ -71,7 +72,7 @@ class Sidebar(UserControl):
                                value=description,
                                size=11,
                                weight='w400',
-                               color="white54",
+                               color=Theme,
                                # animation details
                                opacity=1,
                                animate_opacity=200 # animation speed
@@ -94,7 +95,7 @@ class Sidebar(UserControl):
                         IconButton(
                             icon=icon_name,
                             icon_size=21,
-                            icon_color='White54',
+                            icon_color=Theme,
                             style=ButtonStyle(
                                 shape={
                                     "": RoundedRectangleBorder(radius=10),
@@ -104,7 +105,7 @@ class Sidebar(UserControl):
                         ),
                         Text(
                             value=text,
-                            color="White56",
+                            color=Theme,
                             size=11,
                             opacity=1,
                             animate_opacity=200,
@@ -143,13 +144,13 @@ class Sidebar(UserControl):
                         ]
                         ),
                     # divider
-                    Divider(height=5, color="transparent"),
+                    Divider(height=5, color=Theme),
                     self.ContainedIcon(icons.HOME, "Home"),
                     self.ContainedIcon(icons.SEARCH, "Search"),
                     self.ContainedIcon(icons.CALENDAR_MONTH_ROUNDED, "Calendar"),
                     self.ContainedIcon(icons.PIE_CHART_OUTLINE_ROUNDED, "Stats"),
                     self.ContainedIcon(icons.SETTINGS, "Settings"),
-                    Divider(height=5, color="white24"),
+                    Divider(height=5, color=Theme),
                     self.ContainedIcon(icons.LOGIN_OUTLINED, "Login"),
                 ]
             ),
