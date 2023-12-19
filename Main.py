@@ -2,8 +2,26 @@
 
 import flet
 from flet import *
-# import sqlite3
+import sqlite3
 from tsidebar import Sidebar
+import loginator
+
+conn = sqlite3.connect("to-do.db")
+c = conn.cursor()
+
+c.execute(
+    '''
+    CREATE TABLE IF NOT EXISTS To-do(
+        id INTEGER PRIMARY KEY,
+        Task VARCHAR(255) NOT NULL,
+        Task_status INTEGER DEFAULT 0,
+        Date VARCHAR(255) NOT NULL
+    )
+    '''
+)
+
+conn.commit()
+conn.close()
 
 class Task(UserControl):
     """
