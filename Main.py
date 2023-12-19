@@ -14,8 +14,7 @@ c.execute(
     CREATE TABLE IF NOT EXISTS To-do(
         id INTEGER PRIMARY KEY,
         Task VARCHAR(255) NOT NULL,
-        Task_status INTEGER DEFAULT 0,
-        Date VARCHAR(255) NOT NULL
+        Task_status INTEGER DEFAULT 0
     )
     '''
 )
