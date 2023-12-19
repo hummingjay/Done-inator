@@ -17,8 +17,6 @@ class TaskDatabase:
         
         conn.commit()
         conn.close()
-        
-        return 1
     
     def update_task(self, New, Old):
         """
@@ -49,3 +47,26 @@ class TaskDatabase:
         conn.commit()
         conn.close()
     
+    def DeleteTask(self, Task):
+        """
+        Deletes task from the database
+        """
+        conn = sqlite3.connect("to-do.db")
+        c = conn.cursor()
+        
+        delete_task = "DELETE FROM 'to-do' WHERE Task=?"
+        
+        c.execute(delete_task, (Task, ))
+        
+        conn.commit()
+        conn.close()
+    
+    def ReadData(self):
+        conn = sqlite3.connect("to-do.db")
+        c = conn.cursor()
+        
+        records = c.fetchall()
+        c.execute()
+        
+        conn.commit()
+        conn.close()
