@@ -11,7 +11,7 @@ c = conn.cursor()
 
 c.execute(
     '''
-    CREATE TABLE IF NOT EXISTS To-do(
+    CREATE TABLE IF NOT EXISTS 'to-do'(
         id INTEGER PRIMARY KEY,
         Task VARCHAR(255) NOT NULL,
         Task_status INTEGER DEFAULT 0
@@ -47,7 +47,7 @@ class Task(UserControl):
         self.display_task = Checkbox(
             value=False,
             label=self.task_name,
-            on_change=self.status_changed,
+            on_change=lambda value: self.status_changed(self, value),
         )
         self.edit_name = TextField(expand=1)
           
@@ -97,17 +97,21 @@ class Task(UserControl):
         self.update()
     
     def save_clicked(self, e):
+        old = self.task_name
         self.display_task.label = self.edit_name.value
         self.display_view.visible = True
         self.edit_view.visible = False
         self.update()
+        loginator.TaskDatabase.update_task(self, self.display_task.label, old)
     
-    def status_changed(self, e):
+    def status_changed(self, e, value):
         self.completed = self.display_task.value
         self.task_status_change(self)
+        loginator.TaskDatabase.update_status(self, value ,self.task_name)
     
     def delete_clicked(self, e):
         self.task_delete(self)
+        loginator.TaskDatabase.DeleteTask(self, self.task_name)
 
 
 class Done_inator(UserControl):
@@ -162,7 +166,7 @@ class Done_inator(UserControl):
         for task in self.tasks.controls:
             task.visible = (
                 status =="My Tasks"
-                or (status == "active" and task.completed == False)
+                or (status == "Active" and task.completed == False)
                 or (status == "completed" and task.completed)
             )
         super().update()
