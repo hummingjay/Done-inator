@@ -65,8 +65,10 @@ class TaskDatabase:
         conn = sqlite3.connect("to-do.db")
         c = conn.cursor()
         
-        records = c.fetchall()
-        c.execute()
-        
-        conn.commit()
+        c.execute("SELECT Task FROM 'to-do'")
+
+        tasks = [value[0] for value in c.fetchall()]
+
         conn.close()
+        
+        return tasks
