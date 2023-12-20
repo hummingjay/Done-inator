@@ -65,9 +65,9 @@ class TaskDatabase:
         conn = sqlite3.connect("to-do.db")
         c = conn.cursor()
         
-        c.execute("SELECT Task FROM 'to-do'")
+        c.execute("SELECT Task, Task_status FROM 'to-do'")
 
-        tasks = [value[0] for value in c.fetchall()]
+        tasks = [{'Task':value[0], 'Task_status':value[1]}for value in c.fetchall()]
 
         conn.close()
         
