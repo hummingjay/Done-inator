@@ -3,7 +3,7 @@
 import flet
 from flet import *
 import sqlite3
-from sideinator import SideBar
+from tsidebar import Sidebar
 import loginator
 
 conn = sqlite3.connect("to-do.db")
@@ -44,12 +44,25 @@ class Task(UserControl):
 
 
     def build(self):
+        result = loginator.TaskDatabase.ReadData(self)
+        
+        if not result:
+            state = False
+        else:
+            for value in result:
+                if value["Task_status"] == 0:
+                    state = False
+                    self.task_name = value["Task"]
+                elif value["Task_status"] == 1:
+                    state = True
+                    self.task_name = value["Task"]
+        
         self.display_task = Checkbox(
-            value=False,
+            value=state,
             label=self.task_name,
             on_change=lambda value: self.status_changed(self, value),
         )
-        self.edit_name = TextField(expand=1)
+        self.edit_name = TextField(on_submit=self.save_clicked ,expand=1)
           
         self.display_view = Row(
             alignment="spaceBetween",
@@ -120,20 +133,25 @@ class Done_inator(UserControl):
     containing all other controls
     """
     def build(self):
-        self.new_task =TextField(hint_text="Whatchu doing?", expand=True)
+        self.new_task =TextField(hint_text="Whatchu doing?", on_submit=self.add_clicked ,expand=True)
         self.tasks = Column()
-        
+
         self.filter = Tabs(
+            scrollable=False,
             selected_index=0,
             on_change=self.tabs_changed,
             tabs=[Tab(text="My Tasks"), Tab(text="Active"), Tab(text="completed")],
         )
         
         return Column(
-            width=600,
             controls=[
                 Row(
                     controls=[
+                        IconButton(
+                            icon=icons.MENU_ROUNDED,
+                            icon_size=35,
+                            on_click=None,
+                        ),
                         self.new_task,
                         FloatingActionButton(icon=icons.ADD, on_click=self.add_clicked),
                     ],
@@ -147,9 +165,10 @@ class Done_inator(UserControl):
                 ),
             ],
         )
-    
+
     def add_clicked(self, e):
         task = Task(self.new_task.value, self.task_status_change, self.task_delete)
+        loginator.TaskDatabase.add_task(self, self.new_task.value)
         self.tasks.controls.append(task)
         self.new_task.value = ""
         self.update()
@@ -173,86 +192,38 @@ class Done_inator(UserControl):
         
     def tabs_changed(self, e):
         self.update()
-
-# The sidebar's menu class
-class MenuPage(UserControl):
-    def __init__(self):
-        super().__init__()
     
-    def build(self):
-        return Container(
-            width=0,
-            animate=animation.Animation(400, "decelerate"),
-            clip_behavior=ClipBehavior.HARD_EDGE,
-            content=Column(
-                expand=True,
-                controls=[
-                    Row(
-                        controls=[
-                            Text()
-                        ]
-                    ),
-                    Column(
-                        expand=True,
-                        controls=[SideBar()],
-                    ),
-                ],
-            ),
-        )
-    
-    def HideMenu(self, e):
-        # main page control
-        main = self.controls[0].content.controls[0].controls[0]
-        # menu page control
-        menu = self.controls[0].content.controls[1].controls[0]
-        
-        if menu.width == 210:
-            menu.width = 0
-            menu.border = None
-            menu.update()
-            
-            main.opacity = 1
-            main.update()
-        else:
+    def Db_Add(self, e):
+        result = loginator.TaskDatabase.ReadData(self)
+        if not result:
             pass
-    
-    def ShowMenu(self, e):
-        # main page control
-        main = self.controls[0].content.controls[0].controls[0]
-        # menu page control
-        menu = self.controls[0].content.controls[1].controls[0]
-        
-        if menu.width == 0:
-            menu.width = 210
-            menu.border = border.only(right=border.BorderSide(2, "purple300"))
-            menu.update()
-            
-            main.opacity = 0.35
-            main.update()
         else:
-            menu.width = 0
-            menu.border = None
-            menu.update()
-            
-            main.opacity = 1
-            main.update()
+            for value in result:
+                if value["Task_status"] == 0:
+                    state = False
+                    task_name = value["Task"]
+                    task = Task(task_name, state, self.task_delete)
+                    self.tasks.controls.append(task)
+                    self.update()
 
-menu_page = MenuPage()
+                elif value["Task_status"] == 1:
+                    state = True
+                    task_name = value["Task"]
+                    task = Task(task_name, state, self.task_delete)
+                    self.tasks.controls.append(task)
+                    self.update()
+
+
 def main(page: Page):
     page.horizontal_alignment = CrossAxisAlignment.CENTER
     page.vertical_alignment = 'top'
-    page.scroll = ScrollMode.ADAPTIVE
-
-    page.appbar =AppBar(
-        leading=IconButton(icons.MENU_ROUNDED,
-                           on_click=menu_page.ShowMenu,
-                ),
-        leading_width=70,
+    page.appbar = AppBar(
         title=Text("Done-inator",
                    size=49,
                    weight="bold",
                    font_family="playbill",
-                   )
+                   ),
+        center_title=True
     )
     page.add(Done_inator())
     
