@@ -47,7 +47,7 @@ class Task(UserControl):
         self.display_task = Checkbox(
             value=False,
             label=self.task_name,
-            on_change=lambda value: self.status_changed(self, value),
+            on_change=self.status_changed,
         )
         self.edit_name = TextField(expand=1)
           
@@ -104,10 +104,10 @@ class Task(UserControl):
         self.update()
         loginator.TaskDatabase.update_task(self, self.display_task.label, old)
     
-    def status_changed(self, e, value):
+    def status_changed(self, e):
         self.completed = self.display_task.value
         self.task_status_change(self)
-        loginator.TaskDatabase.update_status(self, value ,self.task_name)
+        loginator.TaskDatabase.update_status(self,self.task_name)
     
     def delete_clicked(self, e):
         self.task_delete(self)

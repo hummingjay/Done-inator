@@ -194,6 +194,8 @@ class Done_inator(UserControl):
         self.update()
     
     def Db_Add(self, e):
+        # count = 0
+        # if count == 0:
         result = loginator.TaskDatabase.ReadData(self)
         if not result:
             pass
