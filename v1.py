@@ -133,6 +133,8 @@ class Done_inator(UserControl):
     containing all other controls
     """
     def build(self):
+        count = 0
+        
         self.new_task =TextField(hint_text="Whatchu doing?", on_submit=self.add_clicked ,expand=True)
         self.tasks = Column()
 
@@ -160,6 +162,7 @@ class Done_inator(UserControl):
                     spacing=25,
                     controls=[
                         self.filter,
+                        self.Db_Add,
                         self.tasks,
                     ],
                 ),
@@ -193,27 +196,30 @@ class Done_inator(UserControl):
     def tabs_changed(self, e):
         self.update()
     
-    def Db_Add(self, e):
-        # count = 0
-        # if count == 0:
-        result = loginator.TaskDatabase.ReadData(self)
-        if not result:
-            pass
-        else:
-            for value in result:
-                if value["Task_status"] == 0:
-                    state = False
-                    task_name = value["Task"]
-                    task = Task(task_name, state, self.task_delete)
-                    self.tasks.controls.append(task)
-                    self.update()
+    def Db_Add(self):
+        count = 0
+        if count == 0:
+            result = loginator.TaskDatabase.ReadData(self)
+            if not result:
+                count += 1
+                pass
+            else:
+                for value in result:
+                    if value["Task_status"] == 0:
+                        state = False
+                        task_name = value["Task"]
+                        task = Task(task_name, state, self.task_delete)
+                        self.tasks.controls.append(task)
+                        self.update()
 
-                elif value["Task_status"] == 1:
-                    state = True
-                    task_name = value["Task"]
-                    task = Task(task_name, state, self.task_delete)
-                    self.tasks.controls.append(task)
-                    self.update()
+                    elif value["Task_status"] == 1:
+                        state = True
+                        task_name = value["Task"]
+                        task = Task(task_name, state, self.task_delete)
+                        self.tasks.controls.append(task)
+                        self.update()
+                
+                count += 1
 
 
 def main(page: Page):
