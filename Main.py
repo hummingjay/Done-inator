@@ -107,7 +107,7 @@ class Task(UserControl):
     def status_changed(self, e):
         self.completed = self.display_task.value
         self.task_status_change(self)
-        loginator.TaskDatabase.update_status(self,self.task_name)
+        loginator.TaskDatabase.update_status(self, self.completed, self.task_name)
     
     def delete_clicked(self, e):
         self.task_delete(self)

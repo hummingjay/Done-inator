@@ -162,7 +162,6 @@ class Done_inator(UserControl):
                     spacing=25,
                     controls=[
                         self.filter,
-                        self.Db_Add,
                         self.tasks,
                     ],
                 ),
