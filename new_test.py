@@ -127,7 +127,7 @@ class Done_inator(UserControl):
     containing all other controls
     """
     def build(self):
-        self.new_task =TextField(hint_text="Whatchu doing?", on_submit=self.add_clicked ,expand=True)
+        self.new_task =TextField(hint_text="Whatchu doing?", on_submit=self.add_task ,expand=True)
         self.tasks = Column()
 
         self.filter = Tabs(
@@ -136,6 +136,8 @@ class Done_inator(UserControl):
             on_change=self.tabs_changed,
             tabs=[Tab(text="My Tasks"), Tab(text="Active"), Tab(text="completed")],
         )
+        
+        self.load_data()
         
         return Column(
             controls=[
@@ -147,7 +149,7 @@ class Done_inator(UserControl):
                             on_click=None,
                         ),
                         self.new_task,
-                        FloatingActionButton(icon=icons.ADD, on_click=self.add_clicked),
+                        FloatingActionButton(icon=icons.ADD, on_click=self.add_task),
                     ],
                 ),
                 Column(
@@ -160,18 +162,11 @@ class Done_inator(UserControl):
             ],
         )
 
-    # alternative to add to screen using db direct
     def add_task(self, e):
         loginator.TaskDatabase.add_task(self, self.new_task.value)
         self.new_task.value=""
-        self.clear_screen
-        pass
-    
-    def add_clicked(self, e):
-        task = Task(self.new_task.value, self.task_status_change, self.task_delete)
-        loginator.TaskDatabase.add_task(self, self.new_task.value)
-        self.tasks.controls.append(task)
-        self.new_task.value = ""
+        self.clear_screen()
+        self.load_data()
         self.update()
     
     def task_status_change(self):
