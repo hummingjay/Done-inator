@@ -16,6 +16,7 @@ class TaskDatabase:
         c.execute(insert_task, (Task, ))
         
         conn.commit()
+        c.close()
         conn.close()
     
     def update_task(self, New, Old):
@@ -29,6 +30,7 @@ class TaskDatabase:
         c.execute(Update_task, (New, Old))
         
         conn.commit()
+        c.close()
         conn.close()
     
     def update_status(self, status, Task):
@@ -45,6 +47,7 @@ class TaskDatabase:
         c.execute(Update_status, (new_status, Task))
         
         conn.commit()
+        c.close()
         conn.close()
     
     def DeleteTask(self, Task):
@@ -59,16 +62,21 @@ class TaskDatabase:
         c.execute(delete_task, (Task, ))
         
         conn.commit()
+        c.close()
         conn.close()
     
     def ReadData(self):
-        conn = sqlite3.connect("to-do.db")
-        c = conn.cursor()
-        
-        c.execute("SELECT Task, Task_status FROM 'to-do'")
+        try:
+            conn = sqlite3.connect("to-do.db")
+            c = conn.cursor()
+            
+            c.execute("SELECT Task, Task_status FROM 'to-do'")
 
-        tasks = [{'Task':value[0], 'Task_status':value[1]}for value in c.fetchall()]
+            tasks = [{'Task':value[0], 'Task_status':value[1]}for value in c.fetchall()]
 
-        conn.close()
-        
-        return tasks
+            c.close()
+            conn.close()
+            
+            return tasks
+        except sqlite3.Error as e:
+            print("The errror here is: ", e)
