@@ -5,6 +5,25 @@ class TaskDatabase:
     This class controls connection, editing, saving and deleting from the
     app's database
     """
+    def connectToDb():
+        try:
+            conn = sqlite3.connect("to-do.db")
+            c = conn.cursor()
+        
+            c.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS 'to-do'(
+                    id INTEGER PRIMARY KEY,
+                    Task VARCHAR(255) NOT NULL,
+                    Task_status INTEGER DEFAULT 0
+                )
+                '''
+            )
+            return conn
+        
+        except Exception as e:
+            print(e)
+        
     def add_task(self, Task):
         try:
             """

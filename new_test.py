@@ -22,39 +22,31 @@ c.execute(
 conn.commit()
 conn.close()
 
-class Taskv2(UserControl):
-    def __init__(self):
-        super().__init__()
-    
-    value = False
-    def build(self):
-        pass
-
 class Task(UserControl):
     """
     This class represents a single task item in the to-do list.
     It holds the task's name, completion status and ref to functions for
     manipulating the task (change status, edit, and deleting)
     """
-    def __init__(self, task_name, task_value, task_delete):
+    def __init__(self, task_name: str, task_status: bool, task_delete):
         """_summary_
 
         Args:
-            task_name (_str_): _Filled in text field and becomes name of task_
-            task_status_change (_bool_): _True or false to tell if the task is edited_
+            task (_str_): _Filled in text field and becomes name of task_
+            task_status (_bool_): _True or false to tell if the task is edited_
             task_delete (_none_): _deletes the task when needed_
         """
         super().__init__()
         self.completed = False
         self.task_name = task_name
-        self.task_value = task_value
+        self.task_status = task_status
         self.task_delete = task_delete
 
     def build(self):
         self.display_task = Checkbox(
-            value=self.task_value,
+            value=self.task_status,
             label=self.task_name,
-            on_change=self.status_changed,
+            on_change=lambda value: self.status_changed(self, value),
         )
         self.edit_name = TextField(on_submit=self.save_clicked ,expand=1)
           
@@ -111,9 +103,9 @@ class Task(UserControl):
         self.update()
         loginator.TaskDatabase.update_task(self, self.display_task.label, old)
     
-    def status_changed(self, e):
+    def status_changed(self, e, value):
         self.completed = self.display_task.value
-        value = self.display_task.value
+        self.task_status(self)
         loginator.TaskDatabase.update_status(self, value ,self.task_name)
     
     def delete_clicked(self, e):
@@ -127,7 +119,7 @@ class Done_inator(UserControl):
     containing all other controls
     """
     def build(self):
-        self.new_task =TextField(hint_text="Whatchu doing?", on_submit=self.add_task ,expand=True)
+        self.new_task =TextField(hint_text="Whatchu doing?", on_submit=self.add_clicked ,expand=True)
         self.tasks = Column()
 
         self.filter = Tabs(
@@ -136,9 +128,6 @@ class Done_inator(UserControl):
             on_change=self.tabs_changed,
             tabs=[Tab(text="My Tasks"), Tab(text="Active"), Tab(text="completed")],
         )
-        
-        self.load_data()
-        
         return Column(
             controls=[
                 Row(
@@ -149,7 +138,7 @@ class Done_inator(UserControl):
                             on_click=None,
                         ),
                         self.new_task,
-                        FloatingActionButton(icon=icons.ADD, on_click=self.add_task),
+                        FloatingActionButton(icon=icons.ADD, on_click=self.add_clicked),
                     ],
                 ),
                 Column(
@@ -162,18 +151,25 @@ class Done_inator(UserControl):
             ],
         )
 
-    def add_task(self, e):
+    
+    def display(self, task, status):
+        task = Task(task, status, self.task_delete)
+        self.tasks.controls.append(task)
+
+
+    def add_clicked(self, e):
+        task = Task(self.new_task.value, self.task_status, self.task_delete)
         loginator.TaskDatabase.add_task(self, self.new_task.value)
-        self.new_task.value=""
-        self.clear_screen()
-        self.load_data()
+        self.tasks.controls.append(task)
+        self.new_task.value = ""
         self.update()
     
-    def task_status_change(self):
+    def task_status(self):
         self.update()
     
     def task_delete(self, task):
         self.tasks.controls.remove(task)
+        loginator.TaskDatabase.DeleteTask(self, task)
         self.update()
     
     def update(self):
@@ -188,30 +184,6 @@ class Done_inator(UserControl):
         
     def tabs_changed(self, e):
         self.update()
-        
-    def clear_screen(self, e):
-        for task in self.tasks.controls:
-            self.task_delete(task)
-
-    def load_data(self):
-        result = loginator.TaskDatabase.ReadData(self)
-        if not result:
-            pass
-        else:
-            for value in result:
-                if value["Task_status"] == 0:
-                    state = False
-                    task_name = value["Task"]
-                    task = Task(task_name, state, self.task_delete)
-                    self.tasks.controls.append(task)
-                    self.update()
-
-                elif value["Task_status"] == 1:
-                    state = True
-                    task_name = value["Task"]
-                    task = Task(task_name, state, self.task_delete)
-                    self.tasks.controls.append(task)
-                    self.update()
 
 
 def main(page: Page):
@@ -229,6 +201,18 @@ def main(page: Page):
     
     page.update()
 
+    db = loginator.TaskDatabase.connectToDb()
+    
+    result = loginator.TaskDatabase.ReadData(db)[::-1]
+    
+    for task in result:
+        page.controls[0].controls[0].controls[1].controls[1].controls.append(
+            Task(
+                task["Task"],
+                task["Task_status"],
+                Done_inator.task_delete,
+            )
+        )
 
 if __name__ == '__main__':
     flet.app(target=main)
