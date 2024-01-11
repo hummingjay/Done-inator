@@ -91,7 +91,7 @@ class TaskDatabase:
             
             delete_task = "DELETE FROM 'to-do' WHERE Task=?"
             
-            c.execute(delete_task, (Task, ))
+            c.execute(delete_task, (Task))
             
             conn.commit()
             c.close()

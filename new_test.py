@@ -37,7 +37,7 @@ class Task(UserControl):
             task_delete (_none_): _deletes the task when needed_
         """
         super().__init__()
-        self.completed = False
+        self.completed = task_status
         self.task_name = task_name
         self.task_status = task_status
         self.task_delete = task_delete
@@ -105,12 +105,12 @@ class Task(UserControl):
     
     def status_changed(self, e, value):
         self.completed = self.display_task.value
-        self.task_status(self)
+        self.task_status
         loginator.TaskDatabase.update_status(self, value ,self.task_name)
     
     def delete_clicked(self, e):
-        self.task_delete(self)
-        loginator.TaskDatabase.DeleteTask(self, self.task_name)
+        self.task_delete(self.task_name)
+        # loginator.TaskDatabase.DeleteTask(self, self.task_name)
 
 
 class Done_inator(UserControl):
@@ -151,22 +151,16 @@ class Done_inator(UserControl):
             ],
         )
 
-    
-    def display(self, task, status):
-        task = Task(task, status, self.task_delete)
-        self.tasks.controls.append(task)
-
-
     def add_clicked(self, e):
         task = Task(self.new_task.value, self.task_status, self.task_delete)
         loginator.TaskDatabase.add_task(self, self.new_task.value)
-        self.tasks.controls.append(task)
+        self.tasks.controls.insert(0, task)
         self.new_task.value = ""
         self.update()
-    
+
     def task_status(self):
         self.update()
-    
+
     def task_delete(self, task):
         self.tasks.controls.remove(task)
         loginator.TaskDatabase.DeleteTask(self, task)
@@ -189,6 +183,7 @@ class Done_inator(UserControl):
 def main(page: Page):
     page.horizontal_alignment = CrossAxisAlignment.CENTER
     page.vertical_alignment = 'top'
+    page.scroll = "hidden"
     page.appbar = AppBar(
         title=Text("Done-inator",
                    size=49,
@@ -204,15 +199,22 @@ def main(page: Page):
     db = loginator.TaskDatabase.connectToDb()
     
     result = loginator.TaskDatabase.ReadData(db)[::-1]
-    
+
     for task in result:
+        if task["Task_status"] == 1:
+            status = True
+        elif task["Task_status"] == 0:
+            status = False
+            
         page.controls[0].controls[0].controls[1].controls[1].controls.append(
             Task(
                 task["Task"],
-                task["Task_status"],
+                status,
                 Done_inator.task_delete,
             )
         )
+    page.controls[0].controls[0].controls[1].controls[1].update()
+
 
 if __name__ == '__main__':
     flet.app(target=main)
