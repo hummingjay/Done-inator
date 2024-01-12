@@ -3,7 +3,7 @@
 import flet
 from flet import *
 import sqlite3
-from sideinator import SideBar
+from tsidebar import Sidebar
 import loginator
 
 conn = sqlite3.connect("to-do.db")
@@ -28,28 +28,27 @@ class Task(UserControl):
     It holds the task's name, completion status and ref to functions for
     manipulating the task (change status, edit, and deleting)
     """
-    def __init__(self, task_name, task_status_change, task_delete):
+    def __init__(self, task_name: str, task_status: bool, task_delete):
         """_summary_
 
         Args:
-            task_name (_str_): _Filled in text field and becomes name of task_
-            task_status_change (_bool_): _True or false to tell if the task is edited_
+            task (_str_): _Filled in text field and becomes name of task_
+            task_status (_bool_): _True or false to tell if the task is edited_
             task_delete (_none_): _deletes the task when needed_
         """
         super().__init__()
-        self.completed = False
+        self.completed = task_status
         self.task_name = task_name
-        self.task_status_change = task_status_change
+        self.task_status = task_status
         self.task_delete = task_delete
-
 
     def build(self):
         self.display_task = Checkbox(
-            value=False,
+            value=self.task_status,
             label=self.task_name,
-            on_change=self.status_changed,
+            on_change=lambda value: self.status_changed(self, value),
         )
-        self.edit_name = TextField(expand=1)
+        self.edit_name = TextField(on_submit=self.save_clicked ,expand=1)
           
         self.display_view = Row(
             alignment="spaceBetween",
@@ -104,14 +103,14 @@ class Task(UserControl):
         self.update()
         loginator.TaskDatabase.update_task(self, self.display_task.label, old)
     
-    def status_changed(self, e):
+    def status_changed(self, e, value):
         self.completed = self.display_task.value
-        self.task_status_change(self)
-        loginator.TaskDatabase.update_status(self, self.completed, self.task_name)
+        self.task_status
+        loginator.TaskDatabase.update_status(self, value ,self.task_name)
     
     def delete_clicked(self, e):
         self.task_delete(self)
-        loginator.TaskDatabase.DeleteTask(self, self.task_name)
+        # loginator.TaskDatabase.DeleteTask(self, self.task_name)
 
 
 class Done_inator(UserControl):
@@ -120,20 +119,24 @@ class Done_inator(UserControl):
     containing all other controls
     """
     def build(self):
-        self.new_task =TextField(hint_text="Whatchu doing?", expand=True)
+        self.new_task =TextField(hint_text="Whatchu doing?", on_submit=self.add_clicked ,expand=True)
         self.tasks = Column()
-        
+
         self.filter = Tabs(
+            scrollable=False,
             selected_index=0,
             on_change=self.tabs_changed,
             tabs=[Tab(text="My Tasks"), Tab(text="Active"), Tab(text="completed")],
         )
-        
         return Column(
-            width=600,
             controls=[
                 Row(
                     controls=[
+                        IconButton(
+                            icon=icons.MENU_ROUNDED,
+                            icon_size=35,
+                            on_click=None,
+                        ),
                         self.new_task,
                         FloatingActionButton(icon=icons.ADD, on_click=self.add_clicked),
                     ],
@@ -147,18 +150,20 @@ class Done_inator(UserControl):
                 ),
             ],
         )
-    
+
     def add_clicked(self, e):
-        task = Task(self.new_task.value, self.task_status_change, self.task_delete)
-        self.tasks.controls.append(task)
+        task = Task(self.new_task.value, self.task_status, self.task_delete)
+        loginator.TaskDatabase.add_task(self, self.new_task.value)
+        self.tasks.controls.insert(0, task)
         self.new_task.value = ""
         self.update()
-    
-    def task_status_change(self):
+
+    def task_status(self):
         self.update()
-    
+
     def task_delete(self, task):
         self.tasks.controls.remove(task)
+        loginator.TaskDatabase.DeleteTask(self, task)
         self.update()
     
     def update(self):
@@ -174,89 +179,41 @@ class Done_inator(UserControl):
     def tabs_changed(self, e):
         self.update()
 
-# The sidebar's menu class
-class MenuPage(UserControl):
-    def __init__(self):
-        super().__init__()
-    
-    def build(self):
-        return Container(
-            width=0,
-            animate=animation.Animation(400, "decelerate"),
-            clip_behavior=ClipBehavior.HARD_EDGE,
-            content=Column(
-                expand=True,
-                controls=[
-                    Row(
-                        controls=[
-                            Text()
-                        ]
-                    ),
-                    Column(
-                        expand=True,
-                        controls=[SideBar()],
-                    ),
-                ],
-            ),
-        )
-    
-    def HideMenu(self, e):
-        # main page control
-        main = self.controls[0].content.controls[0].controls[0]
-        # menu page control
-        menu = self.controls[0].content.controls[1].controls[0]
-        
-        if menu.width == 210:
-            menu.width = 0
-            menu.border = None
-            menu.update()
-            
-            main.opacity = 1
-            main.update()
-        else:
-            pass
-    
-    def ShowMenu(self, e):
-        # main page control
-        main = self.controls[0].content.controls[0].controls[0]
-        # menu page control
-        menu = self.controls[0].content.controls[1].controls[0]
-        
-        if menu.width == 0:
-            menu.width = 210
-            menu.border = border.only(right=border.BorderSide(2, "purple300"))
-            menu.update()
-            
-            main.opacity = 0.35
-            main.update()
-        else:
-            menu.width = 0
-            menu.border = None
-            menu.update()
-            
-            main.opacity = 1
-            main.update()
 
-menu_page = MenuPage()
 def main(page: Page):
     page.horizontal_alignment = CrossAxisAlignment.CENTER
     page.vertical_alignment = 'top'
-    page.scroll = ScrollMode.ADAPTIVE
-
-    page.appbar =AppBar(
-        leading=IconButton(icons.MENU_ROUNDED,
-                           on_click=menu_page.ShowMenu,
-                ),
-        leading_width=70,
+    page.scroll = "hidden"
+    page.appbar = AppBar(
         title=Text("Done-inator",
                    size=49,
                    weight="bold",
                    font_family="playbill",
-                   )
+                   ),
+        center_title=True
     )
     page.add(Done_inator())
     
     page.update()
+
+    db = loginator.TaskDatabase.connectToDb()
+    
+    result = loginator.TaskDatabase.ReadData(db)[::-1]
+
+    for task in result:
+        if task["Task_status"] == 1:
+            status = True
+        elif task["Task_status"] == 0:
+            status = False
+            
+        page.controls[0].controls[0].controls[1].controls[1].controls.append(
+            Task(
+                task["Task"],
+                status,
+                Done_inator.task_delete,
+            )
+        )
+    page.controls[0].controls[0].controls[1].controls[1].update()
 
 
 if __name__ == '__main__':
