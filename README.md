@@ -27,3 +27,6 @@ It is written in plain python using the flet framework which is FLutter running 
 ## Demo
 - A short demo is available on youtube for the basic running of the application
 Click [Here](https://youtu.be/LzhF402MGM0?si=yF7m5QH-qpjL67wU) to see the demo of the application.
+
+Author: __Jason Tumu__
+alias: _hummingjay_
